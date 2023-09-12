@@ -14,7 +14,7 @@ import pandas as pd
 import random
 import logging
 from typing import Optional
-from datasets import load_dataset
+from datasets import load_dataset, load_from_disk
 from transformers import AutoTokenizer
 import argparse
 
@@ -37,10 +37,16 @@ class FEVERTransformation(object):
             output_dir: where to save the CSV with the transformed attribute
             train_size: fraction of the training data to use
         """
-        if dataset_subset is not None:
-            self.train_data = load_dataset(dataset_name_or_path, dataset_subset, split='train')
-            self.validation_data = load_dataset(dataset_name_or_path, dataset_subset, split="validation")
-            self.test_data = load_dataset(dataset_name_or_path, dataset_subset, split='test')
+        if dataset_subset is None:
+            if os.path.exists(os.path.dirname(dataset_name_or_path)):
+                dataset = load_from_disk(dataset_name_or_path)
+                self.train_data = dataset["train"]
+                self.validation_data = dataset["validation"]
+                self.test_data = dataset["test"]
+            else:
+                self.train_data = load_dataset(dataset_name_or_path, dataset_subset, split='train')
+                self.validation_data = load_dataset(dataset_name_or_path, dataset_subset, split="validation")
+                self.test_data = load_dataset(dataset_name_or_path, dataset_subset, split='test')
         else:
             self.train_data = load_dataset(dataset_name_or_path, split='train')
             self.validation_data = load_dataset(dataset_name_or_path, split="validation")
