@@ -81,6 +81,7 @@ def v_entropy(data_fn: str, model, tokenizer, input_key:str ='sentence1', input_
         classifier = pipeline('text-classification', model=model, tokenizer=tokenizer, return_all_scores=True, device=0)
     
     data = pd.read_csv(data_fn)
+    data.fillna("", inplace=True) # to treat empty rows in enfever!
     
     entropies = []
     correct = []
@@ -134,8 +135,8 @@ def v_info(data_fn, model, null_data_fn, null_model, tokenizer, out_fn="", input
         columns specified above.
     """
     data = pd.read_csv(data_fn)
-    data['H_yb'], _, _, _ = v_entropy(null_data_fn, null_model, tokenizer, input_key=input_key, input_key2=input_key2, use_lora=use_lora) 
     data['H_yx'], data['correct_yx'], data['predicted_label'], data['predicted_score'] = v_entropy(data_fn, model, tokenizer, input_key=input_key, input_key2=input_key2, use_lora=use_lora)
+    data['H_yb'], _, _, _ = v_entropy(null_data_fn, null_model, tokenizer, input_key=input_key, input_key2=input_key2, use_lora=use_lora)
     data['PVI'] = data['H_yb'] - data['H_yx']
 
     if out_fn:
